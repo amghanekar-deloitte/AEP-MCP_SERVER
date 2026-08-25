@@ -490,6 +490,37 @@ def _pp_fmt_date(d) -> str:
     return f"{parts[1]}/{parts[2]}/{parts[0]}" if len(parts) == 3 else str(d)
 
 
+# Raw string — no escape processing, so regex character classes stay intact.
+_PP_JS = r"""<script>
+function setMode(m){
+  document.getElementById('view-formatted').style.display=m==='formatted'?'block':'none';
+  document.getElementById('view-raw').style.display=m==='raw'?'block':'none';
+  document.querySelectorAll('.toggle-btn').forEach(function(b){
+    b.classList.toggle('active',b.textContent.toLowerCase().startsWith(m));
+  });
+}
+function toggleExpand(id){
+  var p=document.getElementById(id),b=document.getElementById('btn-'+id);
+  var open=p.classList.toggle('open');
+  b.classList.toggle('open',open);
+  var txt=b.querySelector('.btn-label');
+  if(txt) txt.textContent=open?'Collapse':'Expand';
+  if(open&&!p.dataset.hl){
+    p.querySelectorAll('.j-pre').forEach(function(el){el.innerHTML=hl(el.textContent);el.dataset.hl='1';});
+    p.dataset.hl='1';
+  }
+}
+function hl(t){
+  t=t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  t=t.replace(/"([^"\\]|\\.)*"(\s*):/g,function(m){return'<span class="jk">'+m.replace(/:/,'</span>:');});
+  t=t.replace(/:\s*"([^"\\]|\\.)*"(?=[,\n\r\]}]|$)/g,function(m){return': <span class="jv">'+m.slice(m.indexOf('"'))+'</span>';});
+  t=t.replace(/:\s*(-?\d+(?:\.\d+)?)(?=[,\n\r\]}]|$)/g,': <span class="jn">$1</span>');
+  t=t.replace(/:\s*(true|false|null)(?=[,\n\r\]}]|$)/g,': <span class="jnull">$1</span>');
+  return t;
+}
+</script>"""
+
+
 def _generate_prompts_html(members: list, sandbox: str, title: str) -> str:
     total_offers = sum(len(m["visits"]) for m in members)
     cat_counts: dict = {}
@@ -560,7 +591,8 @@ def _generate_prompts_html(members: list, sandbox: str, title: str) -> str:
             f'<span class="raw-preview">{preview}</span>'
             f'<button class="expand-btn" id="btn-{eid}" onclick="toggleExpand(\'{eid}\')">'
             f'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">'
-            f'<polyline points="4,6 8,10 12,6"/></svg>Expand</button>'
+            f'<polyline points="4,6 8,10 12,6"/></svg>'
+            f'<span class="btn-label">Expand</span></button>'
             f'<div class="json-panel" id="{eid}">'
             f'<div class="json-scroll"><pre class="j-pre" data-json="1">{esc_json}</pre></div>'
             f'</div></td></tr>'
@@ -722,31 +754,7 @@ tbody tr.group-mid{{border-bottom:none;}}
     <div class="footer">{footer_txt}</div>
   </div>
 </main>
-<script>
-function setMode(m){{
-  document.getElementById('view-formatted').style.display=m==='formatted'?'block':'none';
-  document.getElementById('view-raw').style.display=m==='raw'?'block':'none';
-  document.querySelectorAll('.toggle-btn').forEach(function(b){{b.classList.toggle('active',b.textContent.toLowerCase().startsWith(m));}});
-}}
-function toggleExpand(id){{
-  var p=document.getElementById(id),b=document.getElementById('btn-'+id);
-  var open=p.classList.toggle('open');
-  b.classList.toggle('open',open);
-  b.querySelector('svg').nextSibling.textContent=open?' Collapse':' Expand';
-  if(open&&!p.dataset.hl){{
-    p.querySelectorAll('.j-pre').forEach(function(el){{el.innerHTML=hl(el.textContent);el.dataset.hl='1';}});
-    p.dataset.hl='1';
-  }}
-}}
-function hl(t){{
-  t=t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  t=t.replace(/"([^"\\]|\\.)*"(\\s*):/g,function(m){{return'<span class="jk">'+m.replace(/:/,'</span>:');}});
-  t=t.replace(/:\\s*"([^"\\]|\\.)*"(?=[,\\n\\r\\]}}]|$)/g,function(m){{return': <span class="jv">'+m.slice(m.indexOf('"'))+'</span>';}});
-  t=t.replace(/:\\s*(-?\\d+(?:\\.\\d+)?)(?=[,\\n\\r\\]}}]|$)/g,': <span class="jn">$1</span>');
-  t=t.replace(/:\\s*(true|false|null)(?=[,\\n\\r\\]}}]|$)/g,': <span class="jnull">$1</span>');
-  return t;
-}}
-</script>
+{_PP_JS}
 </body>
 </html>"""
 

@@ -1,0 +1,89 @@
+{
+  // ============================================================================
+  // 1. GITHUB COPILOT CHAT - CORE SETTINGS
+  // ============================================================================
+  "chat.agent.enabled": true,
+  "chat.agent.maxRequests": 50,
+  "chat.checkpoints.enabled": true,
+  "chat.checkpoints.showFileChanges": true,
+  "chat.detectParticipant.enabled": true,
+  // ============================================================================
+  // 2. FILE LOCATIONS
+  // ============================================================================
+  "chat.instructionsFilesLocations": {
+    ".claude": true
+  },
+  "chat.agentFilesLocations": {
+    ".claude/agents": true
+  },
+  // ============================================================================
+  // 3. CODE GENERATION & CONTEXT
+  // ============================================================================
+  "github.copilot.chat.agent.autoFix": true,
+  "github.copilot.chat.codeGeneration.useInstructionFiles": true,
+  "github.copilot.chat.useProjectTemplates": true,
+  "github.copilot.chat.codesearch.enabled": true,
+  // ============================================================================
+  // 4. TOOLS & REASONING
+  // ============================================================================
+  "github.copilot.chat.virtualTools.threshold": 80,
+  "chat.agent.thinkingStyle": "fixedScrolling",
+  "chat.agent.thinking.collapsedTools": "withThinking",
+  // ============================================================================
+  // 5. TERMINAL - ENABLED & VISIBLE
+  // ============================================================================
+  // Show terminal output in panel (not hidden)
+  "chat.tools.terminal.outputLocation": "terminal",
+  "chat.tools.terminal.blockDetectedFileWrites": "outsideWorkspace",
+  "chat.tools.terminal.ignoreDefaultAutoApproveRules": false,
+  "terminal.integrated.shellIntegration.timeout": 10000,
+  // Auto-approve safe commands
+  "chat.tools.terminal.autoApprove": {
+    "ls": true,
+    "pwd": true,
+    "cat": true,
+    "echo": true,
+    "mkdir": true,
+    "/^git (status|log|show|diff|branch)$/": true,
+    "/^mvn (clean|install|package|test)$/": true,
+    "/^npm (install|run|test)$/": true,
+    "rm": false,
+    "sudo": false,
+    "/^rm -rf/": false
+  },
+  // ============================================================================
+  // 6. TERMINAL INTELLISENSE
+  // ============================================================================
+  "terminal.integrated.suggest.enabled": true,
+  "terminal.integrated.suggest.suggestOnTriggerCharacters": true,
+  "terminal.integrated.suggest.insertTrailingSpace": true,
+  "terminal.integrated.suggest.showStatusBar": true,
+  // ============================================================================
+  // 7. FILE FORMATTING
+  // ============================================================================
+  // "files.insertFinalNewline": true,
+  "files.trimTrailingWhitespace": true,
+  "files.associations": {
+    "*.md": "markdown"
+  },
+  // ============================================================================
+  // 8. EDITOR
+  // ============================================================================
+  "editor.rulers": [
+    100
+  ],
+  "editor.tabSize": 4,
+  "editor.insertSpaces": true,
+  "[markdown]": {
+    "files.trimTrailingWhitespace": false,
+    "editor.formatOnSave": true
+  },
+  "[json]": {
+    "editor.defaultFormatter": "vscode.json-language-features",
+    "editor.formatOnSave": true
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "vscode.json-language-features",
+    "editor.formatOnSave": true
+  }
+}

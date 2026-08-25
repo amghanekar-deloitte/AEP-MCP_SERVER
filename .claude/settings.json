@@ -1,0 +1,158 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(**/*)",
+      "Bash(cd:*)",
+      "Bash(ls:*)",
+      "Bash(pwd:*)",
+      "Bash(echo:*)",
+      "Bash(which:*)",
+      "Bash(tree:*)",
+      "Bash(mkdir:*)",
+      "Bash(cp:*)",
+      "Bash(mv:*)",
+      "Bash(rm:*)",
+      "Bash(touch:*)",
+      "Bash(chmod:*)",
+      "Bash(cat:*)",
+      "Bash(head:*)",
+      "Bash(tail:*)",
+      "Bash(wc:*)",
+      "Bash(diff:*)",
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(sort:*)",
+      "Bash(uniq:*)",
+      "Bash(cut:*)",
+      "Bash(tr:*)",
+      "Bash(xargs:*)",
+      "Bash(tee:*)",
+      "Bash(stat:*)",
+      "Bash(file:*)",
+      "Bash(basename:*)",
+      "Bash(dirname:*)",
+      "Bash(realpath:*)",
+      "Bash(date:*)",
+      "Bash(whoami:*)",
+      "Bash(uname:*)",
+      "Bash(hostname:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git branch:*)",
+      "Bash(git show:*)",
+      "Bash(git blame:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git checkout:*)",
+      "Bash(git fetch:*)",
+      "Bash(git pull:*)",
+      "Bash(git stash:*)",
+      "Bash(git tag:*)",
+      "Bash(git remote:*)",
+      "Bash(git rev-parse:*)",
+      "Bash(node -v:*)",
+      "Bash(node:*)",
+      "Bash(npm -v:*)",
+      "Bash(npm install:*)",
+      "Bash(npm list:*)",
+      "Bash(npm outdated:*)",
+      "Bash(npm audit:*)",
+      "Bash(npm run:*)",
+      "Bash(npx:*)",
+      "Bash(docker ps:*)",
+      "Bash(docker logs:*)",
+      "Bash(curl -I:*)",
+      "Bash(curl -s:*)",
+      "Bash(curl -X GET:*)",
+      "Bash(python3:*)",
+      "Bash(/Users/amghanekar/aep-mcp-server/.venv/bin/python3:*)",
+      "Bash(/Users/amghanekar/aep-mcp-server/.venv/bin/pip:*)",
+      "mcp__aep__get_current_org",
+      "mcp__aep__list_sandboxes",
+      "mcp__aep__list_datasets",
+      "mcp__aep__run_query",
+      "mcp__aep__get_query",
+      "mcp__aep__get_member_offers",
+      "mcp__aep__switch_org_profile",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:developer.mozilla.org)",
+      "WebFetch(domain:docs.python.org)",
+      "WebFetch(domain:pypi.org)",
+      "WebFetch(domain:npmjs.com)",
+      "WebFetch(domain:go.dev)",
+      "WebFetch(domain:pkg.go.dev)",
+      "WebFetch(domain:learn.microsoft.com)"
+    ],
+    "deny": [
+      "Read(**/.env)",
+      "Read(**/.env.development)",
+      "Read(**/.env.production)",
+      "Read(**/.env.staging)",
+      "Read(**/.env.test)",
+      "Read(**/secrets.*)",
+      "Read(**/*secret*)",
+      "Read(**/*credentials*)",
+      "Read(**/*password*)",
+      "Read(**/.azure/**)",
+      "Read(**/.aws/**)",
+      "Read(**/id_rsa*)",
+      "Read(**/*.pem)",
+      "Read(**/*.key)",
+      "Read(**/*.p12)",
+      "Read(**/*.pfx)",
+      "Read(**/*.jks)",
+      "Read(**/*.keystore)",
+      "Read(**/*token*)",
+      "Read(**/*api*key*)",
+      "Bash(printenv:*)",
+      "Bash(export:*)",
+      "Bash(set | grep:*)",
+      "Bash(cat **/.env:*)",
+      "Bash(cat **/secrets:*)"
+    ],
+    "ask": [
+      "Bash(git push:*)",
+      "Bash(rm -rf:*)",
+      "Bash(sudo:*)",
+      "Bash(curl -X DELETE:*)",
+      "Bash(curl -X POST:*)",
+      "Bash(curl -X PUT:*)",
+      "Read(**/docker-compose.yml)",
+      "Read(**/docker-compose.yaml)"
+    ]
+  },
+  "hooks": {
+    "PreCompact": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo When summarizing this conversation, structure the summary into four sections as precise pointers without losing context. Categorize by importance. Section 1 What was done: completed tasks and outcomes. Section 2 What is going on: current phase, active agent, task in progress, any blockers. Section 3 What to do next: remaining phases, pending tasks, next steps. Section 4 Active plan and conventions: plan summary, patterns being followed, key decisions made, file paths involved."
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "Check if the main agent should continue working. You MUST respond with ONLY valid JSON — either {\"ok\": true} or {\"ok\": false, \"reason\": \"...\"}. No other text. DEFAULT: if there are no tasks, or you cannot determine task state, respond with {\"ok\": true}. Evaluate in order: (1) Use TaskList to check for pending tasks with no blockers in the CURRENT phase sequence. If TaskList fails or returns empty, respond {\"ok\": true}. (2) If the next sequential phase task is unblocked and pending, respond {\"ok\": false, \"reason\": \"Next phase is ready: [task name]. Proceed.\"}. (3) If a subagent just returned results and the main agent has not yet acted on them, respond {\"ok\": false, \"reason\": \"Subagent results unprocessed. Act on them.\"}. (4) Respect task dependencies — do not push the agent to skip phases. (5) If all tasks are completed or none exist, respond {\"ok\": true}. $ARGUMENTS"
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "Before this subagent begins work, inject this instruction: You have a task list. Before starting, use TaskList to find your assigned task. Mark it in_progress using TaskUpdate. As you work, track progress. When done, mark your task as completed using TaskUpdate. Then use TaskList to check if there are downstream tasks that are now unblocked — if yes, report them in your response so the main agent can initiate them. Always use the task tools — never skip them. $ARGUMENTS"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -158,7 +158,7 @@ def register(mcp) -> None:
             return aep_get(
                 f"{_DPS}/offers",
                 sandbox=sandbox or None,
-                params={"offer-type": offer_type, "limit": limit, "start": start},
+                params={"offer-type": offer_type, "limit": limit, "_start": start},
             )
         except Exception as exc:
             return {"error": str(exc)}
@@ -173,7 +173,11 @@ def register(mcp) -> None:
             sandbox: Sandbox name.
         """
         try:
-            return aep_get(f"{_DPS}/offers/{offer_id}", sandbox=sandbox or None)
+            return aep_get(
+                f"{_DPS}/offers/{offer_id}",
+                sandbox=sandbox or None,
+                params={"offer-type": "personalized"},
+            )
         except Exception as exc:
             return {"error": str(exc)}
 

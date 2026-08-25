@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<!--
+  ============================================================================
+  CANONICAL DETAIL PROJECT PLAN FORMAT  ·  "HERO FORMAT"  ·  DO NOT DEVIATE
+  ============================================================================
+  This is the single source of truth for how EVERY {ProjectName}_DetailProjectPlan.html
+  and every use-case plan (e.g. UC2) MUST look. When the planner (or the first
+  execution agent) produces a Detail Project Plan, it MUST replicate this exact
+  design system: the CSS below verbatim, the same components, the same Adobe +
+  Deloitte branding, and the same interactive reviewer-comment + sign-off blocks.
+  Only the CONTENT changes per project/use case.
+
+  HARD RULES (from planning-standards + planner agent):
+   - Fully self-contained: ALL CSS and JS inline. NO external CDN of any kind.
+   - ERD is HAND-BUILT with coloured entity boxes (.erd-box). NEVER Mermaid.
+   - Hero header uses the blue gradient WITH a real subtitle describing the work.
+   - Top tab-links nav (NOT a sidebar). Dark Adobe+Deloitte bar. Pulsing status pill.
+   - Sections are numbered cards (.section > .section-header .ico + h2).
+   - Interactive Reviewer Comments with CSV export + a blank Sign-off table are mandatory.
+   - If the use case involves a customer journey / activation flow (AJO), invoke the
+     journey-flow-designer agent and embed its output as an "AJO Journey Design"
+     section using the .vflow node components shown below.
+  ============================================================================
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>{Project} &middot; {Plan Title} Implementation Plan</title>
+<style>
+  :root {
+    --adobe-red: #EB1000;
+    --blue: #1473e6;
+    --blue-dk: #0a3d8f;
+    --orange: #e68619;
+    --green: #0d7a5f;
+    --purple: #6e3fc9;
+    --ink: #1a1a1a;
+    --grey: #6e6e6e;
+    --line: #e0e0e0;
+    --paper: #ffffff;
+    --bg: #fafafa;
+    --warn-bg: #fff8e1;
+    --warn-bd: #ffd54f;
+    --deloitte-green: #86BC25;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; scroll-behavior: smooth; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--ink); background: var(--bg);
+    font-size: 14px; line-height: 1.55;
+  }
+  code, .mono { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 12.5px; }
+  a { color: var(--blue); text-decoration: none; }
+
+  /* TOP NAV */
+  .topnav { position: sticky; top: 0; z-index: 50; background: #1a1a1a; color: #fff; border-bottom: 1px solid #000; }
+  .topnav-inner { max-width: 1480px; margin: 0 auto; display: flex; align-items: center; gap: 18px; padding: 10px 22px; }
+  .logo-adobe { width: 28px; height: 24px; display: inline-block; }
+  .deloitte { font-family: "Helvetica Neue", Arial, sans-serif; font-weight: 700; font-size: 14px; letter-spacing: 0.4px; color: #fff; display: inline-flex; align-items: center; gap: 4px; }
+  .deloitte .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--deloitte-green); display: inline-block; }
+  .divider { width: 1px; height: 22px; background: #3a3a3a; }
+  .breadcrumb { font-size: 13px; color: #d0d0d0; }
+  .breadcrumb .adobe-aep { color: var(--adobe-red); font-weight: 700; }
+  .breadcrumb .sep { color: #6e6e6e; margin: 0 8px; }
+  .breadcrumb .project { color: #fff; }
+  .tab-links { display: flex; gap: 2px; margin-left: auto; flex-wrap: wrap; justify-content: flex-end; }
+  .tab-links a { color: #d0d0d0; padding: 6px 9px; border-radius: 4px; font-size: 12px; font-weight: 500; transition: background .2s; }
+  .tab-links a:hover, .tab-links a.active { background: #2a2a2a; color: #fff; }
+  .status-pill { display: inline-flex; align-items: center; gap: 8px; background: #2a1f00; color: #ffc107; border: 1px solid #5a4300; border-radius: 4px; padding: 5px 12px; font-size: 11px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; white-space: nowrap; }
+  .status-pill .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--adobe-red); animation: pulse 1.6s ease-in-out infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(235,16,0,0.6); } 50% { opacity: 0.7; box-shadow: 0 0 0 6px rgba(235,16,0,0); } }
+  @media (prefers-reduced-motion: reduce) { .status-pill .dot { animation: none; } }
+
+  /* META BAR */
+  .meta-bar { background: #fff; border-bottom: 1px solid var(--line); font-size: 11px; color: var(--grey); display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 14px; padding: 6px 22px; max-width: 1480px; margin: 0 auto; }
+  .meta-bar .mid { text-align: center; font-weight: 600; color: var(--ink); }
+  .meta-bar .right { text-align: right; }
+
+  /* HERO HEADER (blue gradient, WITH subtitle) */
+  .hero { background: linear-gradient(135deg, var(--blue) 0%, var(--blue-dk) 100%); color: #fff; padding: 38px 22px 44px; }
+  .hero-inner { max-width: 1480px; margin: 0 auto; }
+  .hero h1 { margin: 0 0 8px; font-size: 32px; font-weight: 700; letter-spacing: -0.4px; }
+  .hero .subtitle { margin: 0 0 22px; font-size: 15px; color: rgba(255,255,255,0.88); max-width: 82ch; }
+  .hero-meta { display: grid; grid-template-columns: repeat(6, 1fr); gap: 22px; }
+  .hero-meta .item .lbl { font-size: 10px; letter-spacing: 1.4px; text-transform: uppercase; color: rgba(255,255,255,0.7); margin-bottom: 4px; }
+  .hero-meta .item .val { font-size: 16px; font-weight: 700; color: #fff; }
+
+  /* MAIN */
+  .page { max-width: 1480px; margin: 0 auto; padding: 22px; }
+
+  /* WARNING BANNER */
+  .warn { background: var(--warn-bg); border: 1px solid var(--warn-bd); border-left: 4px solid var(--orange); padding: 12px 16px; border-radius: 4px; margin-bottom: 22px; display: flex; align-items: flex-start; gap: 12px; font-size: 13px; color: #5d4200; }
+  .warn.crit { background: #fde2de; border-color: #f5a89e; border-left-color: var(--adobe-red); color: #7a1400; }
+  .warn .icon { font-size: 18px; line-height: 1; }
+  .warn b { color: var(--ink); }
+
+  /* SECTION CARDS (numbered) */
+  .section { background: var(--paper); border: 1px solid var(--line); border-radius: 6px; margin-bottom: 18px; scroll-margin-top: 120px; }
+  .section-header { display: flex; align-items: center; gap: 12px; padding: 14px 20px; border-bottom: 1px solid var(--line); background: #fbfbfb; }
+  .section-header .ico { width: 28px; height: 28px; border-radius: 4px; background: var(--blue); color: #fff; display: grid; place-items: center; font-weight: 700; font-size: 13px; flex-shrink: 0; }
+  .section-header h2 { margin: 0; font-size: 15px; font-weight: 700; flex: 1; text-transform: uppercase; letter-spacing: 0.6px; }
+  .section-header .right-label { font-size: 11px; color: var(--grey); text-transform: uppercase; letter-spacing: 0.8px; text-align: right; }
+  .section-body { padding: 20px; }
+  .section-body p { margin: 0 0 10px; }
+  .section-body p:last-child { margin-bottom: 0; }
+  .sub-h { margin: 0 0 8px; font-size: 14px; }
+  .sub-lbl { color: var(--grey); font-weight: 500; font-size: 12px; }
+  .grp-lbl { margin: 18px 0 8px; font-size: 12px; letter-spacing: 0.8px; text-transform: uppercase; color: var(--grey); }
+
+  /* STATS GRID */
+  .stats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+  .stat { background: #fff; padding: 18px 14px; text-align: center; }
+  .stat .num { font-size: 28px; font-weight: 800; line-height: 1.1; color: var(--blue); letter-spacing: -0.5px; }
+  .stat:nth-child(2) .num, .stat:nth-child(4) .num { color: var(--orange); }
+  .stat .lbl { margin-top: 6px; font-size: 10px; font-weight: 700; color: var(--grey); letter-spacing: 1px; text-transform: uppercase; }
+
+  /* KEY DECISIONS INLINE GRID */
+  .kd-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 4px; overflow: hidden; margin: 4px 0 18px; }
+  .kd { background: #fff; padding: 12px 14px; }
+  .kd .k { font-size: 10px; letter-spacing: 0.6px; text-transform: uppercase; color: var(--grey); font-weight: 700; margin-bottom: 4px; }
+  .kd .v { font-size: 13px; font-weight: 700; color: var(--blue-dk); }
+
+  /* TABLES */
+  table.tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.tbl thead th { background: #f3f3f3; border-bottom: 2px solid var(--line); text-align: left; padding: 8px 12px; font-size: 10px; font-weight: 700; color: var(--ink); text-transform: uppercase; letter-spacing: 0.8px; white-space: nowrap; }
+  table.tbl tbody td { padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  table.tbl tbody tr:hover td { background: #fafbff; }
+  table.tbl tbody tr:last-child td { border-bottom: none; }
+  table.tbl code { background: #f5f5f5; padding: 1px 6px; border-radius: 3px; }
+  table.tbl tr.gate { background: #fffbe6; }
+  table.tbl tr.gate td { border-left: 3px solid var(--orange); }
+  table.tbl tr.crit { background: #fde2de; }
+  table.tbl tr.crit td { border-left: 3px solid var(--adobe-red); }
+  table.tbl td.grp { font-weight: 700; color: var(--purple); white-space: nowrap; background: #faf8ff; }
+  .table-wrap { overflow-x: auto; }
+
+  /* BADGES */
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: 10px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; vertical-align: middle; }
+  .badge-ootb     { background: #e3f0ff; color: #0a3d8f; border: 1px solid #b8d4f7; }
+  .badge-custom   { background: #fff1e0; color: #8a4500; border: 1px solid #f5c98a; }
+  .badge-enabled  { background: #e1f3eb; color: #0d7a5f; border: 1px solid #a8d8c5; }
+  .badge-enabled::before { content: "\2713 "; }
+  .badge-disabled { background: #ececec; color: #6e6e6e; border: 1px solid #cfcfcf; }
+  .badge-disabled::before { content: "\2715 "; }
+  .badge-blocking { background: #fde2de; color: #b81000; border: 1px solid #f5a89e; }
+  .badge-done     { background: #e1f3eb; color: #0d7a5f; border: 1px solid #a8d8c5; }
+  .badge-done::before { content: "\2713 "; }
+  .badge-pending  { background: #fff1e0; color: #8a4500; border: 1px solid #f5c98a; }
+  .badge-b2b      { background: #ede4ff; color: #4a1d8f; border: 1px solid #cbb6f2; }
+
+  /* CODE BLOCK / PQL */
+  .codeblock { background: #f7f8fa; border: 1px solid var(--line); border-radius: 4px; padding: 12px 14px; margin: 8px 0 12px; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 12.5px; line-height: 1.7; color: #1f2937; white-space: pre; overflow-x: auto; }
+  .codeblock .kw { color: var(--purple); font-weight: 700; }
+
+  /* SEGMENTS GRID */
+  .seg-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .seg-card { border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+  .seg-card .seg-top { padding: 12px 16px; border-bottom: 1px solid var(--line); background: #fbfbfb; }
+  .seg-card.a .seg-top { border-left: 4px solid var(--blue); }
+  .seg-card.b .seg-top { border-left: 4px solid var(--green); }
+  .seg-card .seg-nm { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+  .seg-card .seg-body { padding: 14px 16px; }
+  .seg-card ol { margin: 6px 0 0; padding-left: 18px; font-size: 12px; color: var(--grey); line-height: 1.85; }
+
+  /* ERD (HAND-BUILT — never Mermaid) */
+  .erd-canvas { background: #fafafa; border: 1px solid var(--line); border-radius: 4px; padding: 22px; }
+  .erd-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; }
+  .erd-box { background: #fff; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+  .erd-box .erd-head { padding: 8px 12px; color: #fff; font-weight: 700; font-size: 12px; letter-spacing: 0.4px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .erd-box .erd-head .pk { font-size: 10px; opacity: 0.9; white-space: nowrap; }
+  .erd-box.profile  .erd-head { background: var(--blue); }
+  .erd-box.event    .erd-head { background: var(--orange); }
+  .erd-box.account  .erd-head { background: var(--purple); }
+  .erd-box.lookup   .erd-head { background: var(--grey); }
+  .erd-fields { padding: 6px 0; font-size: 12px; }
+  .erd-fields .row { padding: 4px 12px; display: flex; justify-content: space-between; gap: 10px; border-top: 1px solid #f0f0f0; }
+  .erd-fields .row:first-child { border-top: none; }
+  .erd-fields .row .fname { font-family: ui-monospace, Menlo, monospace; font-size: 11.5px; }
+  .erd-fields .row .ftype { color: var(--grey); font-size: 10.5px; text-align: right; }
+  .erd-fields .row.fk .fname::after { content: " \2197"; color: var(--blue); font-weight: 700; }
+  .erd-fields .row.pk .fname::before { content: "\1F511 "; }
+  .erd-legend { margin-top: 16px; padding: 10px 14px; background: #fff; border: 1px solid var(--line); border-radius: 4px; display: flex; flex-wrap: wrap; gap: 18px; font-size: 11px; color: var(--grey); }
+  .erd-legend .item { display: inline-flex; align-items: center; gap: 6px; }
+  .erd-legend .line-solid { display: inline-block; width: 22px; height: 2px; background: var(--blue); }
+  .erd-legend .line-dashed { display: inline-block; width: 22px; height: 0; border-top: 2px dashed var(--grey); }
+
+  /* PIPELINE (horizontal) */
+  .pipe { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; align-items: stretch; }
+  .pipe .step { background: #fff; border: 1px solid var(--line); border-radius: 4px; padding: 10px 8px; text-align: center; }
+  .pipe .step.stage  { background: linear-gradient(180deg, #fff, #f0f6ff); border-color: #c5deff; }
+  .pipe .step.gate   { background: linear-gradient(180deg, #fff, #fff8e1); border-color: var(--warn-bd); }
+  .pipe .step .n { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--blue); color: #fff; font-weight: 800; font-size: 11px; margin-bottom: 6px; }
+  .pipe .step.gate .n { background: var(--orange); }
+  .pipe .step.done .n { background: var(--green); }
+  .pipe .step .nm { font-size: 11px; font-weight: 700; color: var(--ink); }
+  .pipe .step .ag { font-size: 10px; color: var(--grey); margin-top: 3px; }
+
+  /* VERTICAL DATA / JOURNEY FLOW */
+  .vflow { display: grid; gap: 8px; max-width: 760px; margin: 0 auto; }
+  .vflow .vbox { background: #fff; border: 1px solid var(--line); border-radius: 4px; padding: 11px 14px; display: flex; align-items: flex-start; gap: 12px; font-size: 13px; }
+  .vflow .vbox .kind { font-size: 10px; padding: 2px 8px; border-radius: 3px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; white-space: nowrap; margin-top: 1px; }
+  .vflow .vbox .vtxt { flex: 1; }
+  .vflow .vbox .vtxt b { display: block; font-size: 13px; color: var(--ink); }
+  .vflow .vbox .vtxt small { font-size: 12px; color: var(--grey); }
+  .vbox.file    .kind { background: #ececec; color: var(--ink); }
+  .vbox.api     .kind { background: #e3f0ff; color: #0a3d8f; }
+  .vbox.lake    .kind { background: #fff1e0; color: #8a4500; }
+  .vbox.idgraph .kind { background: #ede4ff; color: #4a1d8f; }
+  .vbox.profile .kind { background: #e1f3eb; color: #0d7a5f; }
+  .vbox.segment .kind { background: #fde2de; color: #b81000; }
+  .vbox.entry   .kind { background: #e3f0ff; color: #0a3d8f; }
+  .vbox.gate    .kind { background: #fde2de; color: #b81000; }
+  .vbox.split   .kind { background: #fff1e0; color: #8a4500; }
+  .vbox.email   .kind { background: #e3f0ff; color: var(--blue-dk); }
+  .vbox.web     .kind { background: #e1f3eb; color: var(--green); }
+  .vbox.wait    .kind { background: #ececec; color: var(--grey); }
+  .vbox.tls     .kind { background: #ede4ff; color: #4a1d8f; }
+  .vbox.exit    .kind { background: #ececec; color: var(--grey); }
+  .vflow .arrow { text-align: center; color: var(--grey); font-size: 14px; line-height: 1; }
+
+  /* AJO JOURNEY CANVAS (branching node graph — the STANDARD for the AJO Journey section).
+     Nodes are colour-coded rounded tiles by AJO node type; connectors are SVG paths with
+     Yes/No labels and branch lanes, mirroring the real Adobe Journey Optimizer canvas. */
+  .jcanvas-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; background: #fbfbfd; padding: 10px; }
+  .jcanvas-wrap svg { display: block; width: 100%; min-width: 900px; height: auto; }
+  .jlegend { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 12px; font-size: 11px; color: var(--grey); }
+  .jlegend .li { display: inline-flex; align-items: center; gap: 6px; }
+  .jlegend .sw { width: 12px; height: 12px; border-radius: 3px; border: 1.5px solid; display: inline-block; }
+  .jlegend .ln { width: 16px; height: 2px; display: inline-block; }
+
+  /* OPEN QUESTIONS */
+  .qlist { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .q { display: grid; grid-template-columns: 32px 1fr; gap: 12px; padding: 14px 16px; background: #fff; border: 1px solid var(--line); border-radius: 4px; align-items: start; }
+  .q.blocker { border-left: 4px solid var(--adobe-red); }
+  .q.medium  { border-left: 4px solid var(--orange); }
+  .q.low     { border-left: 4px solid var(--grey); }
+  .question-num { width: 30px; height: 30px; border-radius: 50%; background: var(--blue); color: #fff; display: grid; place-items: center; font-weight: 800; font-size: 12px; }
+  .q.blocker .question-num { background: var(--adobe-red); }
+  .q.medium .question-num { background: var(--orange); }
+  .q.low .question-num { background: var(--grey); }
+  .q h4 { margin: 0 0 4px; font-size: 13.5px; }
+  .q p { margin: 0 0 8px; font-size: 12.5px; color: #333; }
+  .q .impact { display: block; font-size: 11.5px; color: var(--grey); margin-top: 6px; }
+  .q .impact b { color: var(--ink); }
+  .q .default { display: inline-block; font-size: 11.5px; font-weight: 600; background: #e1f3eb; color: #0d7a5f; border: 1px solid #a8d8c5; padding: 3px 10px; border-radius: 3px; }
+
+  /* SIGN-OFF */
+  .signoff input { width: 100%; border: none; background: transparent; font: inherit; padding: 4px 0; color: var(--ink); }
+  .signoff input:focus { outline: 1px dashed var(--blue); outline-offset: 2px; }
+
+  /* COMMENTS */
+  .cmt-form { background: #fff; border: 1px solid var(--line); border-radius: 4px; padding: 16px; display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; }
+  .cmt-form .full { grid-column: 1 / -1; }
+  .cmt-form label { display: block; font-size: 10px; font-weight: 700; color: var(--grey); letter-spacing: 0.6px; text-transform: uppercase; margin-bottom: 4px; }
+  .cmt-form input, .cmt-form select, .cmt-form textarea { width: 100%; padding: 8px 10px; border: 1px solid var(--line); border-radius: 3px; font: inherit; font-size: 13px; background: #fff; color: var(--ink); }
+  .cmt-form input:focus, .cmt-form select:focus, .cmt-form textarea:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 2px rgba(20,115,230,0.18); }
+  .cmt-form textarea { min-height: 80px; resize: vertical; }
+  .cmt-form .actions { grid-column: 1 / -1; display: flex; gap: 10px; justify-content: flex-end; }
+  .btn { border: none; cursor: pointer; padding: 8px 16px; border-radius: 3px; font: inherit; font-weight: 700; font-size: 12px; letter-spacing: 0.4px; text-transform: uppercase; }
+  .btn-primary { background: var(--blue); color: #fff; }
+  .btn-primary:hover { background: var(--blue-dk); }
+  .btn-ghost { background: #fff; color: var(--ink); border: 1px solid var(--line); }
+  .btn-ghost:hover { background: #f5f5f5; }
+  .export-bar { display: none; justify-content: flex-end; margin-top: 12px; }
+  .export-bar.show { display: flex; }
+  .cmt-list { margin-top: 14px; display: grid; gap: 10px; }
+  .cmt-empty { background: #fff; border: 1px dashed var(--line); border-radius: 4px; padding: 22px; text-align: center; color: var(--grey); font-size: 13px; }
+  .cmt-card { background: #fff; border: 1px solid var(--line); border-radius: 4px; padding: 12px 14px; border-left: 4px solid var(--grey); display: grid; grid-template-columns: 40px 1fr auto; gap: 12px; align-items: start; }
+  .cmt-card.type-approved       { border-left-color: var(--green); }
+  .cmt-card.type-request-change { border-left-color: var(--adobe-red); }
+  .cmt-card.type-question       { border-left-color: var(--orange); }
+  .cmt-card.type-general        { border-left-color: var(--blue); }
+  .cmt-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--blue); color: #fff; display: grid; place-items: center; font-weight: 700; font-size: 13px; }
+  .cmt-body .meta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 11px; color: var(--grey); margin-bottom: 4px; }
+  .cmt-body .name { color: var(--ink); font-weight: 700; font-size: 13px; }
+  .cmt-body .text { font-size: 13px; color: #1f2937; white-space: pre-wrap; }
+  .pill { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 2px; text-transform: uppercase; letter-spacing: 0.4px; }
+  .pill-approved       { background: #e1f3eb; color: var(--green); }
+  .pill-request-change { background: #fde2de; color: var(--adobe-red); }
+  .pill-question       { background: #fff1e0; color: var(--orange); }
+  .pill-general        { background: #e3f0ff; color: var(--blue-dk); }
+  .cmt-del { background: transparent; border: none; cursor: pointer; color: var(--grey); font-size: 16px; padding: 2px 8px; border-radius: 3px; }
+  .cmt-del:hover { color: var(--adobe-red); background: #fde2de; }
+
+  footer { text-align: center; padding: 22px; font-size: 11px; color: var(--grey); border-top: 1px solid var(--line); background: #fff; margin-top: 28px; }
+
+  @media (max-width: 1100px) {
+    .hero-meta { grid-template-columns: repeat(3, 1fr); }
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .kd-grid { grid-template-columns: repeat(2, 1fr); }
+    .erd-grid { grid-template-columns: 1fr; }
+    .pipe { grid-template-columns: repeat(3, 1fr); }
+    .seg-grid { grid-template-columns: 1fr; }
+    .qlist { grid-template-columns: 1fr; }
+    .cmt-form { grid-template-columns: 1fr 1fr; }
+    .tab-links { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ==== TOP NAV (dark; Adobe SVG logo + Deloitte wordmark + breadcrumb + tab-links + pulsing status pill) ==== -->
+<nav class="topnav">
+  <div class="topnav-inner">
+    <svg class="logo-adobe" viewBox="0 0 240 234" aria-label="Adobe">
+      <polygon fill="#EB1000" points="150,0 240,0 240,234"/>
+      <polygon fill="#EB1000" points="90,0 0,0 0,234"/>
+      <polygon fill="#EB1000" points="120,87 177,234 140,234 123,191 81,191"/>
+    </svg>
+    <span class="deloitte">Deloitte<span class="dot"></span></span>
+    <span class="divider"></span>
+    <span class="breadcrumb">
+      <span class="adobe-aep">Adobe Experience Platform</span>
+      <span class="sep">&middot;</span>
+      <span class="project">{Project} &middot; {Plan}</span>
+    </span>
+    <div class="tab-links">
+      <a href="#overview">Overview</a>
+      <a href="#data">Data</a>
+      <a href="#identity">Identity</a>
+      <a href="#schemas">Schemas</a>
+      <a href="#erd">ERD</a>
+      <a href="#segments">Segments</a>
+      <a href="#journey">Journey</a>
+      <a href="#pipeline">Pipeline</a>
+      <a href="#questions">Questions</a>
+      <a href="#signoff">Sign-off</a>
+      <a href="#comments">Comments</a>
+    </div>
+    <span class="status-pill"><span class="dot"></span> Awaiting Approval</span>
+  </div>
+</nav>
+
+<!-- ==== META BAR (date · centred title · right meta) ==== -->
+<div class="meta-bar">
+  <div class="left">{YYYY-MM-DD}</div>
+  <div class="mid">{Project} &middot; {Plan Title} Implementation Plan</div>
+  <div class="right">Sandbox: {sandbox}</div>
+</div>
+
+<!-- ==== HERO HEADER (blue gradient WITH subtitle + 6-item meta grid) ==== -->
+<section class="hero">
+  <div class="hero-inner">
+    <h1>{Plan Title}</h1>
+    <p class="subtitle">{One or two sentence description of what this plan delivers and why.}</p>
+    <div class="hero-meta">
+      <div class="item"><div class="lbl">Project</div><div class="val">{Project}</div></div>
+      <div class="item"><div class="lbl">Generated</div><div class="val">{YYYY-MM-DD}</div></div>
+      <div class="item"><div class="lbl">Edition</div><div class="val">{AEP B2B / B2C}</div></div>
+      <div class="item"><div class="lbl">Sandbox</div><div class="val">{sandbox}</div></div>
+      <div class="item"><div class="lbl">Complexity</div><div class="val">{S / M / L}</div></div>
+      <div class="item"><div class="lbl">{metric}</div><div class="val">{value}</div></div>
+    </div>
+  </div>
+</section>
+
+<main class="page">
+
+  <!-- ==== APPROVAL / GOVERNANCE BANNER (use .warn.crit for hard gates) ==== -->
+  <div class="warn crit">
+    <span class="icon">&#9888;</span>
+    <div><b>Approval gate.</b> No pipeline stage will execute until this plan is reviewed and signed off below. Describe the exact gate condition here (e.g. Schema Registry deploy blocked pending explicit user approval).</div>
+  </div>
+
+  <!-- ==== 1. EXECUTIVE SUMMARY (prose + optional key-decisions grid + 5-stat grid) ==== -->
+  <section class="section" id="overview">
+    <div class="section-header"><div class="ico">1</div><h2>Executive Summary</h2><span class="right-label">{short right label}</span></div>
+    <div class="section-body">
+      <p>{What this is, in plain language.}</p>
+      <div class="grp-lbl">Approved Decisions</div>
+      <div class="kd-grid">
+        <div class="kd"><div class="k">{decision}</div><div class="v">{value}</div></div>
+        <!-- repeat .kd -->
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="num">{n}</div><div class="lbl">{label}</div></div>
+        <!-- exactly 5 .stat; children 2 and 4 render orange automatically -->
+      </div>
+    </div>
+  </section>
+
+  <!-- ==== 2. DATA / USE CASE / REQUIREMENTS (tables) ==== -->
+  <section class="section" id="data">
+    <div class="section-header"><div class="ico">2</div><h2>{Entity Inventory / Use Case &amp; Requirements}</h2><span class="right-label">{label}</span></div>
+    <div class="section-body">
+      <div class="table-wrap">
+        <table class="tbl">
+          <thead><tr><th>{col}</th><th>{col}</th></tr></thead>
+          <tbody><tr><td>{}</td><td>{}</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==== 3. IDENTITY & STITCHING (table + vertical data flow) ==== -->
+  <section class="section" id="identity">
+    <div class="section-header"><div class="ico">3</div><h2>Identity &amp; Stitching Design</h2><span class="right-label">{label}</span></div>
+    <div class="section-body">
+      <div class="table-wrap"><table class="tbl"><thead><tr><th>Source Field</th><th>Namespace</th><th>Role</th><th>Source</th></tr></thead>
+        <tbody><tr><td><code>{}</code></td><td>{}</td><td>{}</td><td><span class="badge badge-ootb">Adobe OOTB</span></td></tr></tbody></table></div>
+      <div class="grp-lbl">Data Flow</div>
+      <div class="vflow">
+        <div class="vbox file"><span class="kind">File</span><span class="vtxt"><b>{source files}</b></span></div>
+        <div class="arrow">&#9660;</div>
+        <div class="vbox api"><span class="kind">API</span><span class="vtxt"><b>Batch Ingestion API &rarr; datasets</b></span></div>
+        <div class="arrow">&#9660;</div>
+        <div class="vbox lake"><span class="kind">Lake</span><span class="vtxt"><b>AEP Data Lake</b></span></div>
+        <div class="arrow">&#9660;</div>
+        <div class="vbox idgraph"><span class="kind">ID Graph</span><span class="vtxt"><b>Identity stitch</b></span></div>
+        <div class="arrow">&#9660;</div>
+        <div class="vbox profile"><span class="kind">Profile</span><span class="vtxt"><b>Real-Time Customer Profile</b></span></div>
+        <div class="arrow">&#9660;</div>
+        <div class="vbox segment"><span class="kind">Segment</span><span class="vtxt"><b>Audiences</b></span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==== 4. XDM SCHEMA FIELD MAPPINGS (per-schema tables; OOTB/CUSTOM badge on every field) ==== -->
+  <section class="section" id="schemas">
+    <div class="section-header"><div class="ico">4</div><h2>XDM Schema Field Mappings</h2><span class="right-label">Every field tagged OOTB or CUSTOM</span></div>
+    <div class="section-body">
+      <h4 class="sub-h">{Schema Name} <span class="badge badge-enabled">Profile</span> &nbsp; <span class="sub-lbl">Class: {XDM class}</span></h4>
+      <div class="table-wrap"><table class="tbl"><thead><tr><th>Source Field</th><th>XDM Target</th><th>Field Group</th><th>Type</th></tr></thead>
+        <tbody>
+          <tr><td><code>{}</code></td><td><code>{}</code></td><td>{}</td><td><span class="badge badge-ootb">OOTB</span></td></tr>
+          <tr><td><code>{}</code></td><td><code>{}</code></td><td>{}</td><td><span class="badge badge-custom">CUSTOM</span></td></tr>
+        </tbody></table></div>
+    </div>
+  </section>
+
+  <!-- ==== 5. ERD (HAND-BUILT coloured boxes: .profile blue / .event orange / .account purple / .lookup grey) ==== -->
+  <section class="section" id="erd">
+    <div class="section-header"><div class="ico">5</div><h2>Entity-Relationship Diagram</h2><span class="right-label">{n} Schemas</span></div>
+    <div class="section-body">
+      <div class="erd-canvas">
+        <div class="erd-grid">
+          <div class="erd-box profile">
+            <div class="erd-head"><span>{ENTITY}</span><span class="pk">{XDM class}</span></div>
+            <div class="erd-fields">
+              <div class="row pk"><span class="fname">{pk}</span><span class="ftype">{ns}</span></div>
+              <div class="row"><span class="fname">{field}</span><span class="ftype">{type}</span></div>
+              <div class="row fk"><span class="fname">{fk}</span><span class="ftype">&rarr; {Entity}</span></div>
+            </div>
+          </div>
+          <!-- repeat .erd-box with .event / .account / .lookup as appropriate -->
+          <div class="erd-box" style="background:#fbfbfb; border-style:dashed;">
+            <div style="padding:14px 16px;">
+              <div style="font-size:11px; letter-spacing:0.8px; text-transform:uppercase; color:var(--grey); margin-bottom:8px;">Stitching Edges</div>
+              <ul style="margin:0; padding-left:18px; font-size:12px; color:#333;"><li>{edge}</li></ul>
+            </div>
+          </div>
+        </div>
+        <div class="erd-legend">
+          <span class="item"><span class="line-solid"></span> Identity stitch</span>
+          <span class="item"><span class="line-dashed"></span> Lookup / reference</span>
+          <span class="item">&#128273; Primary key</span>
+          <span class="item">&#8599; Foreign key</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==== 6. SEGMENTS (optional — .seg-grid of .seg-card with .codeblock PQL) ==== -->
+  <section class="section" id="segments">
+    <div class="section-header"><div class="ico">6</div><h2>Segment Design</h2><span class="right-label">{label}</span></div>
+    <div class="section-body">
+      <div class="seg-grid">
+        <div class="seg-card a"><div class="seg-top"><div class="seg-nm">{Segment}</div><span class="badge badge-b2b">Account Audience</span></div>
+          <div class="seg-body"><p style="font-size:12.5px;">{definition}</p>
+            <div class="codeblock"><span class="kw">attribute</span> = "{value}"</div>
+            <div class="grp-lbl" style="margin:10px 0 4px;">AEP UI Steps</div><ol><li>{step}</li></ol></div></div>
+        <div class="seg-card b"><div class="seg-top"><div class="seg-nm">{Segment}</div></div><div class="seg-body">{...}</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==== 7. AJO JOURNEY DESIGN (CONDITIONAL — include whenever the use case has a customer journey.
+           Populate from the journey-flow-designer agent. RENDER AS AN AJO-STYLE BRANCHING CANVAS
+           (this is the STANDARD): a hand-authored, self-contained SVG that mirrors the real Adobe
+           Journey Optimizer canvas — an entry source, condition/experiment nodes, channel-action
+           tiles, wait timers, and connectors with Yes/No labels where paths split into lanes and
+           reconverge. NEVER a plain vertical list.
+
+           HOW TO AUTHOR:
+             - Fixed viewBox (e.g. 0 0 1040 <H>), wrap in .jcanvas-wrap (scrolls on narrow screens).
+             - Node = rounded rect tile (W~210, H~60) coloured by AJO node type:
+                 entry #1473e6 / consent-gate #EB1000 / experiment #e68619 / condition #6e3fc9 /
+                 email #0a3d8f / web+converged #0d7a5f / custom-action(TLS) #d1491f / exit #6e6e6e (dashed).
+               Each tile: tiny uppercase TYPE tag (fill=node colour) + bold title + grey subtitle.
+             - Columns by lane: left = exits, centre = main spine, right = converged branch;
+               experiment split fans into two lane columns that reconverge.
+             - Connectors = <path> with an arrowhead marker; Yes edges green, No/flow grey, branch % orange;
+               label each branch edge with a small chip (Yes / No / 90% / 10%).
+             - Add a .jlegend below. Full worked example: output/FXSource/UC2_DetailProjectPlan.html
+           This journey is also BUILDABLE on the real AJO canvas: Read Audience entry, Condition,
+           Experiment, Message (Email), Custom Action (Web/TLS), Wait. ==== -->
+  <section class="section" id="journey">
+    <div class="section-header"><div class="ico">7</div><h2>AJO Journey Design</h2><span class="right-label">{label}</span></div>
+    <div class="section-body">
+      <p style="font-size:12.5px; color:var(--grey); margin-bottom:10px;">Rendered as it maps onto the <b>AJO canvas</b>. Buildable in AJO: Read Audience entry &rarr; Condition &rarr; Experiment &rarr; Message / Custom Action, with Wait timers between checks.</p>
+      <div class="jcanvas-wrap">
+        <svg viewBox="0 0 1040 720" role="img" aria-label="AJO journey canvas (template)">
+          <defs>
+            <pattern id="jdots" width="26" height="26" patternUnits="userSpaceOnUse"><circle cx="1.5" cy="1.5" r="1.1" fill="#e4e6ec"/></pattern>
+            <marker id="jarw" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#9aa0aa"/></marker>
+            <marker id="jarwG" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#0d7a5f"/></marker>
+            <marker id="jarwO" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#e68619"/></marker>
+          </defs>
+          <rect x="0" y="0" width="1040" height="720" fill="url(#jdots)"/>
+          <g fill="none" stroke-width="2">
+            <path d="M520,90 L520,148" stroke="#9aa0aa" marker-end="url(#jarw)"/>
+            <path d="M520,210 L520,268" stroke="#0d7a5f" marker-end="url(#jarwG)"/>
+            <path d="M415,180 L257,180" stroke="#9aa0aa" marker-end="url(#jarw)"/>
+            <path d="M520,330 C520,358 340,362 340,388" stroke="#e68619" marker-end="url(#jarwO)"/>
+            <path d="M520,330 C520,358 700,362 700,388" stroke="#e68619" marker-end="url(#jarwO)"/>
+            <path d="M340,450 C340,485 520,476 520,508" stroke="#9aa0aa" marker-end="url(#jarw)"/>
+            <path d="M700,450 C700,485 520,476 520,508" stroke="#9aa0aa" marker-end="url(#jarw)"/>
+            <path d="M520,570 L520,628" stroke="#9aa0aa" marker-end="url(#jarw)"/>
+            <path d="M625,540 L773,540" stroke="#0d7a5f" marker-end="url(#jarwG)"/>
+          </g>
+          <g font-size="9" font-weight="700" text-anchor="middle">
+            <rect x="505" y="231" width="30" height="17" rx="4" fill="#fff" stroke="#0d7a5f"/><text x="520" y="243" fill="#0d7a5f">Yes</text>
+            <rect x="320" y="171" width="30" height="17" rx="4" fill="#fff" stroke="#6e6e6e"/><text x="335" y="183" fill="#6e6e6e">No</text>
+            <rect x="375" y="343" width="70" height="17" rx="4" fill="#fff" stroke="#e68619"/><text x="410" y="355" fill="#e68619">90% Target</text>
+            <rect x="604" y="343" width="72" height="17" rx="4" fill="#fff" stroke="#e68619"/><text x="640" y="355" fill="#e68619">10% Control</text>
+            <rect x="505" y="591" width="30" height="17" rx="4" fill="#fff" stroke="#6e6e6e"/><text x="520" y="603" fill="#6e6e6e">No</text>
+            <rect x="684" y="519" width="32" height="17" rx="4" fill="#fff" stroke="#0d7a5f"/><text x="700" y="531" fill="#0d7a5f">Yes</text>
+          </g>
+          <g>
+            <rect x="415" y="30" width="210" height="60" rx="10" fill="#eef5ff" stroke="#1473e6" stroke-width="1.6"/>
+            <text x="429" y="46" font-size="8" font-weight="700" fill="#1473e6" letter-spacing="0.4">ENTRY &#183; READ AUDIENCE</text>
+            <text x="429" y="64" font-size="11" font-weight="700" fill="#1a1a1a">{audience name}</text>
+            <text x="429" y="80" font-size="9.5" fill="#6e6e6e">{qualification / entry mode}</text>
+          </g>
+          <g>
+            <rect x="415" y="150" width="210" height="60" rx="10" fill="#fdecea" stroke="#EB1000" stroke-width="1.6"/>
+            <text x="429" y="166" font-size="8" font-weight="700" fill="#EB1000" letter-spacing="0.4">CONDITION &#183; CONSENT</text>
+            <text x="429" y="184" font-size="11" font-weight="700" fill="#1a1a1a">{consent attribute} ?</text>
+            <text x="429" y="200" font-size="9.5" fill="#6e6e6e">{gate note}</text>
+          </g>
+          <g>
+            <rect x="415" y="270" width="210" height="60" rx="10" fill="#fef3e2" stroke="#e68619" stroke-width="1.6"/>
+            <text x="429" y="286" font-size="8" font-weight="700" fill="#e68619" letter-spacing="0.4">EXPERIMENT</text>
+            <text x="429" y="304" font-size="11" font-weight="700" fill="#1a1a1a">Split &#8212; {90 / 10}</text>
+            <text x="429" y="320" font-size="9.5" fill="#6e6e6e">{treatment note}</text>
+          </g>
+          <g>
+            <rect x="235" y="390" width="210" height="60" rx="10" fill="#e9f0fb" stroke="#0a3d8f" stroke-width="1.6"/>
+            <text x="249" y="406" font-size="8" font-weight="700" fill="#0a3d8f" letter-spacing="0.4">EMAIL &#183; TARGET</text>
+            <text x="249" y="424" font-size="11" font-weight="700" fill="#1a1a1a">{message}</text>
+            <text x="249" y="440" font-size="9.5" fill="#6e6e6e">{personalization}</text>
+          </g>
+          <g>
+            <rect x="595" y="390" width="210" height="60" rx="10" fill="#e9f0fb" stroke="#0a3d8f" stroke-width="1.6"/>
+            <text x="609" y="406" font-size="8" font-weight="700" fill="#0a3d8f" letter-spacing="0.4">EMAIL &#183; CONTROL</text>
+            <text x="609" y="424" font-size="11" font-weight="700" fill="#1a1a1a">{message}</text>
+            <text x="609" y="440" font-size="9.5" fill="#6e6e6e">{holdout note}</text>
+          </g>
+          <g>
+            <rect x="415" y="510" width="210" height="60" rx="10" fill="#f2ecfb" stroke="#6e3fc9" stroke-width="1.6"/>
+            <text x="429" y="526" font-size="8" font-weight="700" fill="#6e3fc9" letter-spacing="0.4">CONDITION &#183; AFTER WAIT {n}</text>
+            <text x="429" y="544" font-size="11" font-weight="700" fill="#1a1a1a">{goal reached} ?</text>
+            <text x="429" y="560" font-size="9.5" fill="#6e6e6e">Yes &#8594; converged branch</text>
+          </g>
+          <g>
+            <rect x="415" y="630" width="210" height="60" rx="10" fill="#f0f0f0" stroke="#6e6e6e" stroke-width="1.6" stroke-dasharray="4 3"/>
+            <text x="429" y="646" font-size="8" font-weight="700" fill="#6e6e6e" letter-spacing="0.4">EXIT</text>
+            <text x="429" y="664" font-size="11" font-weight="700" fill="#1a1a1a">{exit condition}</text>
+            <text x="429" y="680" font-size="9.5" fill="#6e6e6e">{note}</text>
+          </g>
+          <g>
+            <rect x="45" y="150" width="210" height="60" rx="10" fill="#f0f0f0" stroke="#6e6e6e" stroke-width="1.6" stroke-dasharray="4 3"/>
+            <text x="59" y="166" font-size="8" font-weight="700" fill="#6e6e6e" letter-spacing="0.4">EXIT</text>
+            <text x="59" y="184" font-size="11" font-weight="700" fill="#1a1a1a">No Consent</text>
+            <text x="59" y="200" font-size="9.5" fill="#6e6e6e">suppress</text>
+          </g>
+          <g>
+            <rect x="775" y="510" width="210" height="60" rx="10" fill="#e7f4ee" stroke="#0d7a5f" stroke-width="1.6"/>
+            <text x="789" y="526" font-size="8" font-weight="700" fill="#0d7a5f" letter-spacing="0.4">CONVERTED &#183; BRANCH</text>
+            <text x="789" y="544" font-size="11" font-weight="700" fill="#1a1a1a">{goal met}</text>
+            <text x="789" y="560" font-size="9.5" fill="#6e6e6e">{follow-up + exit}</text>
+          </g>
+        </svg>
+      </div>
+      <div class="jlegend">
+        <span class="li"><span class="sw" style="border-color:#1473e6;background:#eef5ff"></span>Entry</span>
+        <span class="li"><span class="sw" style="border-color:#EB1000;background:#fdecea"></span>Consent gate</span>
+        <span class="li"><span class="sw" style="border-color:#e68619;background:#fef3e2"></span>Experiment</span>
+        <span class="li"><span class="sw" style="border-color:#6e3fc9;background:#f2ecfb"></span>Condition</span>
+        <span class="li"><span class="sw" style="border-color:#0a3d8f;background:#e9f0fb"></span>Email</span>
+        <span class="li"><span class="sw" style="border-color:#0d7a5f;background:#e7f4ee"></span>Web / Converged</span>
+        <span class="li"><span class="sw" style="border-color:#d1491f;background:#fdece6"></span>Custom action (TLS)</span>
+        <span class="li"><span class="sw" style="border-color:#6e6e6e;background:#f0f0f0"></span>Exit</span>
+        <span class="li"><span class="ln" style="background:#0d7a5f"></span>Yes path</span>
+        <span class="li"><span class="ln" style="background:#9aa0aa"></span>No / flow</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==== 8. PIPELINE STRATEGY (horizontal .pipe with .done/.gate/.stage steps + table with .gate/.crit rows) ==== -->
+  <section class="section" id="pipeline">
+    <div class="section-header"><div class="ico">8</div><h2>Pipeline Strategy</h2><span class="right-label">{label}</span></div>
+    <div class="section-body">
+      <div class="pipe">
+        <div class="step done"><div class="n">A</div><div class="nm">{name}</div><div class="ag">{agent}</div></div>
+        <div class="step gate"><div class="n">B</div><div class="nm">{name}</div><div class="ag">{agent}</div></div>
+        <div class="step stage"><div class="n">C</div><div class="nm">{name}</div><div class="ag">{agent}</div></div>
+        <!-- ... -->
+      </div>
+      <div class="table-wrap"><table class="tbl" style="margin-top:18px;"><thead><tr><th>Phase</th><th>Agent</th><th>Gate / Output</th></tr></thead>
+        <tbody>
+          <tr><td>{phase} <span class="badge badge-done">DONE</span></td><td>{agent}</td><td>{output}</td></tr>
+          <tr class="crit"><td>{phase}</td><td>{agent}</td><td><b>USER APPROVAL REQUIRED.</b> {gate} <span class="badge badge-blocking">blocking</span></td></tr>
+        </tbody></table></div>
+    </div>
+  </section>
+
+  <!-- ==== 9. OPEN QUESTIONS (.qlist of .q.blocker/.medium/.low with .question-num + h4 + p + .impact
+           OR .default green pill when resolved-with-default) ==== -->
+  <section class="section" id="questions">
+    <div class="section-header"><div class="ico">9</div><h2>Open Questions</h2><span class="right-label">{n} total &middot; {n} blockers</span></div>
+    <div class="section-body">
+      <div class="qlist">
+        <div class="q blocker"><div class="question-num">1</div><div><h4>{question}</h4><p>{detail}</p><span class="impact"><b>Blocks:</b> {impact}</span></div></div>
+        <div class="q medium"><div class="question-num">2</div><div><h4>{question}</h4><p>{detail}</p><span class="default">Default: {resolution}</span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==== 10. RISKS (optional — .tbl with severity badges; .crit row for Critical) ==== -->
+  <section class="section" id="risks">
+    <div class="section-header"><div class="ico">10</div><h2>Risks &amp; Mitigations</h2><span class="right-label">{label}</span></div>
+    <div class="section-body">
+      <div class="table-wrap"><table class="tbl"><thead><tr><th>Severity</th><th>Risk</th><th>Mitigation</th></tr></thead>
+        <tbody>
+          <tr class="crit"><td><span class="badge badge-blocking">Critical</span></td><td>{risk}</td><td>{mitigation}</td></tr>
+          <tr><td><span class="badge badge-disabled">Low</span></td><td>{risk}</td><td>{mitigation}</td></tr>
+        </tbody></table></div>
+    </div>
+  </section>
+
+  <!-- ==== 11. SIGN-OFF (blank reviewer table, ready to fill) ==== -->
+  <section class="section" id="signoff">
+    <div class="section-header"><div class="ico">11</div><h2>Sign-off</h2><span class="right-label">Reviewer Approval</span></div>
+    <div class="section-body signoff">
+      <div class="table-wrap"><table class="tbl"><thead><tr><th>Reviewer</th><th>Role</th><th>Decision</th><th>Date</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td><input aria-label="Reviewer"/></td><td><input aria-label="Role"/></td><td><input aria-label="Decision"/></td><td><input aria-label="Date"/></td><td><input aria-label="Notes"/></td></tr>
+          <tr><td><input aria-label="Reviewer"/></td><td><input aria-label="Role"/></td><td><input aria-label="Decision"/></td><td><input aria-label="Date"/></td><td><input aria-label="Notes"/></td></tr>
+          <tr><td><input aria-label="Reviewer"/></td><td><input aria-label="Role"/></td><td><input aria-label="Decision"/></td><td><input aria-label="Date"/></td><td><input aria-label="Notes"/></td></tr>
+        </tbody></table></div>
+    </div>
+  </section>
+
+  <!-- ==== 12. REVIEWER COMMENTS (MANDATORY — interactive form + colour-coded cards + CSV export; all inline JS) ==== -->
+  <section class="section" id="comments">
+    <div class="section-header"><div class="ico">12</div><h2>Reviewer Comments</h2><span class="right-label">All Comments Stay In This Page &middot; Export to CSV</span></div>
+    <div class="section-body">
+      <form class="cmt-form" id="cmtForm" onsubmit="return addComment(event)">
+        <div><label for="cmtName">Name <span style="color:var(--adobe-red)">*</span></label><input type="text" id="cmtName" required placeholder="Jane Doe" /></div>
+        <div><label for="cmtRole">Role / Team</label><input type="text" id="cmtRole" placeholder="MarTech Architect" /></div>
+        <div><label for="cmtType">Comment Type <span style="color:var(--adobe-red)">*</span></label>
+          <select id="cmtType" required><option value="Approved">Approved</option><option value="Request Change">Request Change</option><option value="Question">Question</option><option value="General Note" selected>General Note</option></select></div>
+        <div><label for="cmtSection">Section</label>
+          <select id="cmtSection"><option value="Overall">Overall</option><option value="Executive Summary">1. Executive Summary</option><!-- one option per section in this plan --></select></div>
+        <div class="full"><label for="cmtText">Comment <span style="color:var(--adobe-red)">*</span></label><textarea id="cmtText" required placeholder="Your feedback..."></textarea></div>
+        <div class="actions">
+          <button type="button" class="btn btn-ghost" onclick="document.getElementById('cmtForm').reset(); document.getElementById('cmtType').value='General Note'; document.getElementById('cmtSection').value='Overall';">Reset</button>
+          <button type="submit" class="btn btn-primary">Add Comment</button>
+        </div>
+      </form>
+      <div class="export-bar" id="exportBar"><button class="btn btn-ghost" onclick="exportCSV()">&#11015; Export to CSV</button></div>
+      <div class="cmt-list" id="cmtList"><div class="cmt-empty" id="cmtEmpty">No comments yet. Be the first to leave feedback.</div></div>
+    </div>
+  </section>
+
+</main>
+
+<footer>{Project} &middot; {Plan Title} &middot; AEP Implementation Plan &middot; Generated {YYYY-MM-DD} &middot; Deloitte Digital Engage / APEX CDP &middot; Planner Agent Output</footer>
+
+<script>
+  // Reviewer comments — fully inline, no external deps. Change the CSV filename prefix to {Project}.
+  const comments = [];
+  const typeKey = { 'Approved':'approved', 'Request Change':'request-change', 'Question':'question', 'General Note':'general' };
+  function initials(name){ return name.trim().split(/\s+/).slice(0,2).map(s=>s[0]).join('').toUpperCase() || '?'; }
+  function pad(n){ return String(n).padStart(2,'0'); }
+  function fmtTs(d){ return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`; }
+  function esc(s){ return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]); }
+  function addComment(ev){
+    ev.preventDefault();
+    const name=document.getElementById('cmtName').value.trim();
+    const role=document.getElementById('cmtRole').value.trim();
+    const type=document.getElementById('cmtType').value;
+    const section=document.getElementById('cmtSection').value;
+    const text=document.getElementById('cmtText').value.trim();
+    if(!name||!text) return false;
+    comments.push({ id: Date.now(), name, role, type, section, text, ts: new Date() });
+    render();
+    document.getElementById('cmtForm').reset();
+    document.getElementById('cmtType').value='General Note';
+    document.getElementById('cmtSection').value='Overall';
+    return false;
+  }
+  function delComment(id){ const i=comments.findIndex(c=>c.id===id); if(i>=0){ comments.splice(i,1); render(); } }
+  function render(){
+    const list=document.getElementById('cmtList'), empty=document.getElementById('cmtEmpty'), bar=document.getElementById('exportBar');
+    if(comments.length===0){ list.innerHTML=''; list.appendChild(empty); bar.classList.remove('show'); return; }
+    bar.classList.add('show');
+    list.innerHTML = comments.map(c => {
+      const k = typeKey[c.type] || 'general';
+      return `
+        <div class="cmt-card type-${k}">
+          <div class="cmt-avatar">${esc(initials(c.name))}</div>
+          <div class="cmt-body">
+            <div class="meta">
+              <span class="name">${esc(c.name)}</span>
+              ${c.role ? `<span>&middot; ${esc(c.role)}</span>` : ''}
+              <span class="pill pill-${k}">${esc(c.type)}</span>
+              <span>&middot; ${esc(c.section)}</span>
+              <span>&middot; ${fmtTs(c.ts)}</span>
+            </div>
+            <div class="text">${esc(c.text)}</div>
+          </div>
+          <button class="cmt-del" title="Delete" onclick="delComment(${c.id})">&times;</button>
+        </div>`;
+    }).join('');
+  }
+  function exportCSV(){
+    if(comments.length===0) return;
+    const header=['#','Reviewer Name','Role','Comment Type','Section','Comment','Timestamp'];
+    const q=v=>`"${String(v).replace(/"/g,'""')}"`;
+    const rows=comments.map((c,i)=>[i+1,c.name,c.role,c.type,c.section,c.text,fmtTs(c.ts)].map(q).join(','));
+    const csv='﻿'+header.map(q).join(',')+'\n'+rows.join('\n');   // UTF-8 BOM so Excel opens cleanly
+    const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+    const url=URL.createObjectURL(blob); const d=new Date();
+    const fname=`{Project}_ReviewComments_${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}.csv`;
+    const a=document.createElement('a'); a.href=url; a.download=fname; document.body.appendChild(a); a.click();
+    document.body.removeChild(a); URL.revokeObjectURL(url);
+  }
+  // Active tab tracking
+  const sections=document.querySelectorAll('main section.section');
+  const tabLinks=document.querySelectorAll('.tab-links a');
+  const map={}; tabLinks.forEach(a=>map[a.getAttribute('href')]=a);
+  const io=new IntersectionObserver((entries)=>{ entries.forEach(e=>{ if(e.isIntersecting){ tabLinks.forEach(l=>l.classList.remove('active')); const a=map['#'+e.target.id]; if(a) a.classList.add('active'); } }); }, { rootMargin:'-30% 0px -60% 0px' });
+  sections.forEach(s=>io.observe(s));
+</script>
+</body>
+</html>
