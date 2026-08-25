@@ -1,0 +1,21 @@
+{
+  "Stage": {
+    "_comment": "Adobe Marketing Agent (AMA) Stage MCP — token refreshed automatically by the server. Copy to mcp_servers.json and fill in your bearer token.",
+    "type": "http",
+    "url": "https://aep-ai-ama-stage.adobe.io/mcp",
+    "headers": {
+      "Authorization": "Bearer <YOUR_STAGE_BEARER_TOKEN>"
+    }
+  },
+  "AJO": {
+    "_comment": "Adobe CX Coworker AJO MCP — Deloitte org. IMS token expires in ~24h. Refresh via: python3 tools/refresh_ajo_token.py",
+    "type": "http",
+    "url": "https://cx-enterprise.adobe.io/mcp/server/ajo",
+    "headers": {
+      "Authorization": "Bearer <YOUR_AJO_IMS_TOKEN>",
+      "x-api-key": "<YOUR_API_KEY>",
+      "x-gw-ims-org-id": "<YOUR_IMS_ORG_ID>",
+      "x-sandbox-name": "<YOUR_SANDBOX_NAME>"
+    }
+  }
+}
