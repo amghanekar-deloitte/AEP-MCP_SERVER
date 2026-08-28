@@ -11,6 +11,7 @@ from datetime import datetime, timezone
 
 from auth import aep_get, aep_post, get_active_sandbox
 from tools.ajo import _extract_placements
+from tools.schema_context import extract_prompt_text
 from tools.usage_logger import track
 
 _ODS = "/data/core/ods"
@@ -646,11 +647,10 @@ def _parse_propositions(response_data: dict) -> list:
 
 def _content_preview(content: str, characteristics: dict) -> str:
     """Return a one-line human-readable preview of offer content for chat display."""
-    # Prefer characteristic fields that are already plain English
-    for key in ("PromptText", "promptText"):
-        val = characteristics.get(key, "")
-        if val and len(val) > 5:
-            return val[:160] + ("…" if len(val) > 160 else "")
+    # Prefer characteristic fields — discover key name dynamically at runtime
+    pt = extract_prompt_text(characteristics)
+    if pt and len(pt) > 5:
+        return pt[:160] + ("…" if len(pt) > 160 else "")
     # Try to extract first meaningful string from JSON
     if content.strip().startswith("{"):
         try:

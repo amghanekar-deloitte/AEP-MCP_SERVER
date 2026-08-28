@@ -882,13 +882,24 @@ def register(mcp):
                 sslmode="require", connect_timeout=30,
             )
             try:
+                from tools.schema_context import probe_visits_field, parse_visits_from_json_text
                 cur = conn.cursor()
                 n = min(max(1, limit), 500)
-                cur.execute(
-                    f"SELECT _cvs.aetnaProxyId as proxy_id, "
-                    f"CAST(_cvs.personlizedVisits AS TEXT) as visits "
-                    f"FROM aetna_dataset_profile_personalized_prompts LIMIT {n}"
-                )
+                tbl = "aetna_dataset_profile_personalized_prompts"
+                visits_col = probe_visits_field(conn, tbl)
+                if visits_col:
+                    cur.execute(
+                        f"SELECT _cvs.aetnaProxyId as proxy_id, "
+                        f"CAST(_cvs.{visits_col} AS TEXT) as visits "
+                        f"FROM {tbl} LIMIT {n}"
+                    )
+                else:
+                    # No known field matched — fetch whole _cvs and discover in Python
+                    cur.execute(
+                        f"SELECT _cvs.aetnaProxyId as proxy_id, "
+                        f"CAST(_cvs AS TEXT) as cvs_raw "
+                        f"FROM {tbl} LIMIT {n}"
+                    )
                 raw_rows = cur.fetchall()
                 cur.close()
             finally:
@@ -897,8 +908,11 @@ def register(mcp):
             members = []
             for row in raw_rows:
                 proxy_id = str(row[0]) if row[0] else ""
-                visits_str = str(row[1]) if row[1] else ""
-                visits = _pp_parse_visits(visits_str)
+                raw_val  = str(row[1]) if row[1] else ""
+                if visits_col:
+                    visits = _pp_parse_visits(raw_val)
+                else:
+                    visits = parse_visits_from_json_text(raw_val) or _pp_parse_visits(raw_val)
                 members.append({"proxy_id": proxy_id, "visits": visits})
 
             title = "Personalized Prompts"

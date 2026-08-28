@@ -10,8 +10,10 @@ Multiple   → multi-tab: one tab per member + "All Profiles" summary table with
 
 import json
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from datetime import date
 
 from auth import aep_get
+from tools.schema_context import find_visits as _find_visits
 from tools.usage_logger import track
 
 # ── CSS ───────────────────────────────────────────────────────────────────────
@@ -374,26 +376,51 @@ def _build_commercial_card(deduped_details, prefix=""):
 
 def _build_prompts_card(visits, prefix=""):
     pid   = f"{prefix}-json-prompts" if prefix else "json-prompts"
-    count = len(visits)
-    count_label = (
-        f'<span style="font-weight:400;text-transform:none;letter-spacing:0;'
-        f'color:var(--{"accent" if count else "text3"})">'
-        f'{count} prompt{"s" if count != 1 else ""}</span>'
-    )
+    today = date.today().isoformat()
+
+    def _is_active(v):
+        end = (v.get("endDate") or "")
+        return bool(end) and end >= today
+
+    total   = len(visits)
+    n_active  = sum(1 for v in visits if _is_active(v))
+    n_expired = total - n_active
+
     if not visits:
-        return _card_full(
-            f'Active Prompts &nbsp;{count_label}', pid,
-            '<div class="no-prompts">No active personalized prompts.</div>'
+        count_label = (
+            f'<span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text3)">'
+            f'0 prompts</span>'
         )
+        return _card_full(
+            f'Personalized Prompts &nbsp;{count_label}', pid,
+            '<div class="no-prompts">No personalized prompts found.</div>'
+        )
+
+    parts_cl = []
+    if n_active:
+        parts_cl.append(f'<span style="color:var(--good)">{n_active} active</span>')
+    if n_expired:
+        parts_cl.append(f'<span style="color:var(--muted)">{n_expired} expired</span>')
+    count_label = (
+        f'<span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text3)">'
+        f'{total} total &nbsp;&middot;&nbsp; {"&nbsp;&middot;&nbsp;".join(parts_cl)}</span>'
+    )
+
     cards_html = ""
     for v in visits:
-        claim_id = v.get("claimInformation", {}).get("associatedClaimId", "—")
+        active     = _is_active(v)
+        status_badge = (
+            '<span class="badge badge-yes" style="font-size:10px;padding:1px 7px">Active</span>'
+            if active else
+            '<span class="badge badge-no" style="font-size:10px;padding:1px 7px">Expired</span>'
+        )
+        claim_id = (v.get("claimInformation") or {}).get("associatedClaimId", "") or "—"
         savings  = v.get("projectedSavings", "")
         last_svc = ""
         try:
             ca = v.get("customAttributes", "")
-            if "last_service_dt" in ca:
-                last_svc = ca.split("'last_service_dt':'")[1].split("'")[0]
+            if ca and "last_service_dt" in str(ca):
+                last_svc = str(ca).split("'last_service_dt':'")[1].split("'")[0]
         except Exception:
             pass
         savings_html = (
@@ -401,24 +428,26 @@ def _build_prompts_card(visits, prefix=""):
             f'<span class="savings-label">Proj. Savings</span></div>'
         ) if savings else ""
         sep = '<span class="prompt-meta-item" style="color:var(--rule)">|</span>'
-        parts = [
+        meta_parts = [
             f'Window: <strong>{v.get("startDate","")}&nbsp;&rarr;&nbsp;{v.get("endDate","")}</strong>',
             f'Claim: <strong class="mono" style="font-size:11px">{claim_id}</strong>',
         ]
         if last_svc:
-            parts.append(f'Last Svc: <strong>{last_svc}</strong>')
+            meta_parts.append(f'Last Svc: <strong>{last_svc}</strong>')
         if v.get("individualId"):
-            parts.append(f'Individual: <strong class="mono" style="font-size:11px">{v["individualId"]}</strong>')
-        meta_html = sep.join(f'<span class="prompt-meta-item">{p}</span>' for p in parts)
+            meta_parts.append(f'Individual: <strong class="mono" style="font-size:11px">{v["individualId"]}</strong>')
+        meta_html = sep.join(f'<span class="prompt-meta-item">{p}</span>' for p in meta_parts)
+        opacity = '' if active else ' style="opacity:0.6"'
         cards_html += (
-            f'<div class="prompt-card"><div>'
-            f'<div class="prompt-title">{v.get("promptName","")}</div>'
+            f'<div class="prompt-card"{opacity}><div>'
+            f'<div class="prompt-title" style="display:flex;align-items:center;gap:8px">'
+            f'{v.get("promptName","")} {status_badge}</div>'
             f'<div class="prompt-sub">Cohort {v.get("cohortName","")} &middot; '
             f'Prompt ID {v.get("promptId","")} &middot; v{v.get("version","1")}</div>'
             f'<div class="prompt-meta">{meta_html}</div>'
             f'</div>{savings_html}</div>'
         )
-    return _card_full(f'Active Prompts &nbsp;{count_label}', pid, cards_html)
+    return _card_full(f'Personalized Prompts &nbsp;{count_label}', pid, cards_html)
 
 
 def _build_flags_card(ah_list, prefix=""):
@@ -472,7 +501,7 @@ def _section_json(entity_key, entity_data, segment_names, deduped_details, prefi
     cvs        = entity.get("_cvs", {})
     mem_univ   = cvs.get("aetnaMemUniv", {})
     commercial = cvs.get("aetnacommercial", {})
-    visits     = cvs.get("personlizedVisits", [])
+    visits     = _find_visits(cvs)
     seg_memb   = entity.get("segmentMembership", {}).get("ups", {})
 
     def pk(name):
@@ -518,7 +547,7 @@ def _profile_sections(entity_id, entity_key, entity_data, segment_names, deduped
     cvs        = entity.get("_cvs", {})
     mem_univ   = cvs.get("aetnaMemUniv", {})
     commercial = cvs.get("aetnacommercial", {})
-    visits     = cvs.get("personlizedVisits", [])
+    visits     = _find_visits(cvs)
     seg_memb   = entity.get("segmentMembership", {}).get("ups", {})
     sources    = entity_data.get("sources", [])
     ds_count   = len([s for s in sources if s != "segments"])

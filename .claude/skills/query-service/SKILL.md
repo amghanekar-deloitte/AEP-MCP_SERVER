@@ -121,3 +121,4 @@ Scheduled queries run on a cron-like cadence defined at creation. Use `list_quer
 - `aep-fundamentals` — authentication, environment variables, org profile setup
 - `data-ingestion` — batch upload and monitoring (Stage 6)
 - `data-validation` — post-ingestion validation queries (Stage 7)
+- `sandbox-schema-context` — **load before writing any SQL that selects nested struct fields** (e.g. `_cvs.*`); use `probe_visits_field` / `probe_qs_struct_field` to discover the correct column name at runtime rather than hardcoding it

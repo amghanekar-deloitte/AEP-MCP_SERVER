@@ -267,3 +267,7 @@ For custom schemas with fewer than 30 top-level custom fields: render all fields
 For custom schemas with 30+ top-level custom fields (e.g. large Member Universe schemas): render top-level fields and one level of nesting. For deeply nested arrays, use a group row showing the array name and render its child fields indented.
 
 For schemas where `get_schema` returns a payload exceeding the tool's display limit: render only the fields visible in the truncated response, add a `<tr class="note-row">` noting the schema is too large to display fully, and direct the user to the Schema Registry UI.
+
+## Related Skills
+
+- `sandbox-schema-context` — **load alongside schema-browser when building tools that read or render data** from a schema; use `find_field` to locate the correct field key at runtime before hardcoding any custom field group path discovered from this browser

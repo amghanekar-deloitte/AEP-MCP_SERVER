@@ -174,3 +174,4 @@ See `aetna_merge_policies.md` memory for full IDs.
 - `ajo` — fetches AJO documentation from Experience League; use for guardrails and limits
 - `ajo-journey` — journey-specific patterns
 - `segment-management` — PQL for audience segments (different endpoint but same syntax family)
+- `sandbox-schema-context` — **load when reading offer characteristics or rendering offer content**; use `extract_prompt_text(characteristics)` to find the prompt text key dynamically instead of hardcoding `"PromptText"` or `"promptText"`
