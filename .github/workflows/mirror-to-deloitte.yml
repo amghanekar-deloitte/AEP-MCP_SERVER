@@ -22,13 +22,13 @@ jobs:
           printf '%s\n' "$DELOITTE_SSH_KEY" > ~/.ssh/id_deloitte
           chmod 600 ~/.ssh/id_deloitte
           ssh-keyscan github.com >> ~/.ssh/known_hosts
-          cat >> ~/.ssh/config << 'EOF'
-Host github-work
-  HostName github.com
-  User git
-  IdentityFile ~/.ssh/id_deloitte
-  IdentitiesOnly yes
-EOF
+          {
+            echo "Host github-work"
+            echo "  HostName github.com"
+            echo "  User git"
+            echo "  IdentityFile ~/.ssh/id_deloitte"
+            echo "  IdentitiesOnly yes"
+          } >> ~/.ssh/config
 
       - name: Push mirror to Deloitte org
         run: |
