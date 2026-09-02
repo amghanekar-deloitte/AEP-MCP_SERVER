@@ -15,16 +15,20 @@ jobs:
           fetch-depth: 0
 
       - name: Setup SSH
+        env:
+          DELOITTE_SSH_KEY: ${{ secrets.DELOITTE_SSH_KEY }}
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.DELOITTE_SSH_KEY }}" > ~/.ssh/id_deloitte
+          printf '%s\n' "$DELOITTE_SSH_KEY" > ~/.ssh/id_deloitte
           chmod 600 ~/.ssh/id_deloitte
           ssh-keyscan github.com >> ~/.ssh/known_hosts
-          echo "Host github-work
-            HostName github.com
-            User git
-            IdentityFile ~/.ssh/id_deloitte
-            IdentitiesOnly yes" >> ~/.ssh/config
+          cat >> ~/.ssh/config << 'EOF'
+Host github-work
+  HostName github.com
+  User git
+  IdentityFile ~/.ssh/id_deloitte
+  IdentitiesOnly yes
+EOF
 
       - name: Push mirror to Deloitte org
         run: |
